@@ -41,8 +41,10 @@ module.exports = function createPlugin(app) {
   var fs = require('fs');
   var port = 8880;
 
+  let http_server;
+
   plugin.start = function (options, restartPlugin) {
-    var http_server = http.createServer(httpServerRequest);
+    http_server = http.createServer(httpServerRequest);
     http_server.listen(port, function () {
       console.log("Listening on port " + port);
     });
@@ -58,6 +60,11 @@ module.exports = function createPlugin(app) {
     if (typeof (wsServer.shutDown) == "function") {
       wsServer.shutDown();
       app.debug('Stopped');
+    }
+    if (http_server) {
+      http_server.close(() => {
+        console.log('closed')
+      })
     }
   };
 
