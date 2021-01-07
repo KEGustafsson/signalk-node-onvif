@@ -1,0 +1,17 @@
+{
+  "name": "signalk-node-onvif",
+  "version": "0.0.1",
+  "description": "Signal K demo node-onvif",
+  "main": "index.js",
+  "keywords": [
+    "signalk-node-server-plugin",
+    "signalk-webapp"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "xml2js": ">=0.4.17",
+    "html": ">=1.0.0",
+    "websocket": "^1.0.33"
+  }
+}
