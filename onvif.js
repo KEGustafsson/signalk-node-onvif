@@ -86,24 +86,35 @@
   };
 
   OnvifManager.prototype.initWebSocketConnection = function () {
-    this.ws = new WebSocket("ws://" + location.hostname + ":8880");
-    //	this.ws = new WebSocket('ws://' + document.location.host);
+    this.ws = new WebSocket("wss://" + location.hostname + ":8880");
     this.ws.onopen = function () {
       console.log("WebSocket connection established.");
       this.sendRequest("startDiscovery");
     }.bind(this);
     this.ws.onclose = function (event) {
       console.log("WebSocket connection closed.");
-      this.showMessageModal(
-        "Error",
-        "The WebSocket connection was closed. Check if the server.js is running."
-      );
-    }.bind(this);
-    this.ws.onerror = function (error) {
-      this.showMessageModal(
-        "Error",
-        "Failed to establish a WebSocket connection. Check if the server.js is running."
-      );
+      this.ws = new WebSocket("ws://" + location.hostname + ":8880");
+      this.ws.onopen = function () {
+        console.log("WebSocket connection established.");
+        this.sendRequest("startDiscovery");
+      }.bind(this);
+      this.ws.onmessage = function (res) {
+        var data = JSON.parse(res.data);
+        var id = data.id;
+        if (id === "startDiscovery") {
+          this.startDiscoveryCallback(data);
+        } else if (id === "connect") {
+          this.connectCallback(data);
+        } else if (id === "fetchSnapshot") {
+          this.fetchSnapshotCallback(data);
+        } else if (id === "ptzMove") {
+          this.ptzMoveCallback(data);
+        } else if (id === "ptzStop") {
+          this.ptzStopCallback(data);
+        } else if (id === "ptzHome") {
+          this.ptzHomeCallback(data);
+        }
+      }.bind(this);
     }.bind(this);
     this.ws.onmessage = function (res) {
       var data = JSON.parse(res.data);

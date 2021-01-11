@@ -33,25 +33,43 @@ module.exports = function createPlugin(app) {
   plugin.id = "signalk-node-onvif";
   plugin.name = "Signal K node-onvif";
   plugin.description = "Signal K node-onvif ";
-  var dummy = null;
+  let dummy;
   const setStatus = app.setPluginStatus || app.setProviderStatus;
 
-  var http = require("http");
-  var fs = require("fs");
-  var port = 8880;
+  const https = require("https");
+  const http = require("http");
+  const fs = require("fs");
+  let port = 8880;
   let wsServer;
   let http_server;
+  const path = "/home/node/.signalk/ssl-key.pem";
 
   plugin.start = function (options, restartPlugin) {
-    http_server = http.createServer(httpServerRequest);
-    http_server.listen(port, function () {
-      console.log("Node-onvif HTTP server listening on port " + port);
+    fs.access(path, fs.F_OK, (err) => {
+      if (err) {
+        http_server = http.createServer(httpServerRequest);
+        http_server.listen(port, function () {
+          console.log("Node-onvif http/ws server listening on port " + port);
+        });
+        wsServer = new WebSocketServer({
+          httpServer: http_server,
+        });
+        wsServer.on("request", wsServerRequest);
+      } else {
+        const httpsSec = {
+          key: fs.readFileSync("/home/node/.signalk/ssl-key.pem"),
+          cert: fs.readFileSync("/home/node/.signalk/ssl-cert.pem"),
+        };
+        http_server = https.createServer(httpsSec, httpServerRequest);
+        http_server.listen(port, function () {
+          console.log("Node-onvif https/wss server listening on port " + port);
+        });
+        wsServer = new WebSocketServer({
+          httpServer: http_server,
+        });
+        wsServer.on("request", wsServerRequest);
+      }
     });
-    wsServer = new WebSocketServer({
-      httpServer: http_server,
-    });
-    wsServer.on("request", wsServerRequest);
-
     app.debug("Plugin started");
   };
 
